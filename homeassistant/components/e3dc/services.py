@@ -6,7 +6,7 @@ import voluptuous as vol
 
 from homeassistant.core import HomeAssistant, ServiceCall
 
-from .const import DOMAIN, SERVICE_SET_POWER_LIMITS
+from .const import DOMAIN, SERVICE_CLEAR_POWER_LIMITS, SERVICE_SET_POWER_LIMITS
 from .coordinator import E3DCCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -15,11 +15,17 @@ ATTR_DEVICEID = "device_id"
 ATTR_MAX_CHARGE = "max_charge"
 ATTR_MAX_DISCHARGE = "max_discharge"
 
-SCHEMA_SET_POWER_KUNUTS = vol.Schema(
+SCHEMA_SET_POWER_LIMITS = vol.Schema(
     {
         vol.Required(ATTR_DEVICEID): str,
         vol.Optional(ATTR_MAX_CHARGE): vol.All(int, vol.Range(min=0)),
         vol.Optional(ATTR_MAX_DISCHARGE): vol.All(int, vol.Range(min=0)),
+    }
+)
+
+SCHEMA_CLEAR_POWER_LIMITS = vol.Schema(
+    {
+        vol.Required(ATTR_DEVICEID): str,
     }
 )
 
@@ -30,12 +36,21 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     async def async_call_set_power_limits(call: ServiceCall) -> None:
         await _async_set_power_limits(hass, call)
 
-    # hass.services.register(DOMAIN, "servicename", lambda, schema)
     hass.services.async_register(
         domain=DOMAIN,
         service=SERVICE_SET_POWER_LIMITS,
         service_func=async_call_set_power_limits,
-        schema=SCHEMA_SET_POWER_KUNUTS,
+        schema=SCHEMA_SET_POWER_LIMITS,
+    )
+
+    async def async_call_clear_power_limits(call: ServiceCall) -> None:
+        await _async_clear_power_limits(hass, call)
+
+    hass.services.async_register(
+        domain=DOMAIN,
+        service=SERVICE_CLEAR_POWER_LIMITS,
+        service_func=async_call_clear_power_limits,
+        schema=SCHEMA_CLEAR_POWER_LIMITS,
     )
 
 
@@ -52,3 +67,10 @@ async def _async_set_power_limits(hass: HomeAssistant, call: ServiceCall) -> Non
     await coordinator.async_set_power_limits(
         max_charge=max_charge, max_discharge=max_discharge
     )
+
+
+async def _async_clear_power_limits(hass: HomeAssistant, call: ServiceCall) -> None:
+    """Extract service information and relay to coordinator."""
+    uid = call.data.get(ATTR_DEVICEID)
+    coordinator: E3DCCoordinator = hass.data[DOMAIN][uid]
+    await coordinator.async_clear_power_limits()
