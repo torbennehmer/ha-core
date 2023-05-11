@@ -20,6 +20,7 @@ from .const import DOMAIN
 from .coordinator import E3DCCoordinator
 
 _LOGGER = logging.getLogger(__name__)
+PARALLEL_UPDATES = 0
 
 SENSOR_DESCRIPTIONS: Final[tuple[SensorEntityDescription, ...]] = (
     # CONFIG AND DIAGNOSTIC SENSORS

@@ -1,6 +1,5 @@
 """Coordinator for E3DC integration."""
 
-from datetime import timedelta
 import logging
 from typing import Any
 
@@ -16,7 +15,7 @@ from homeassistant.helpers.update_coordinator import (  # CoordinatorEntity,; Up
     DataUpdateCoordinator,
 )
 
-from .const import CONF_RSCPKEY, DOMAIN
+from .const import CONF_RSCPKEY, DEFAULT_SCAN_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,7 +38,10 @@ class E3DCCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.uid: str = config_entry.unique_id
 
         super().__init__(
-            hass, _LOGGER, name=DOMAIN, update_interval=timedelta(seconds=10)
+            hass,
+            _LOGGER,
+            name=DOMAIN,
+            update_interval=DEFAULT_SCAN_INTERVAL,
         )
 
     async def async_connect(self):
